@@ -1,4 +1,4 @@
-#![feature(exact_size_is_empty, iter_collect_into, portable_simd)]
+#![feature(iter_collect_into, portable_simd)]
 
 pub mod day1 {
     use std::{
@@ -7,7 +7,6 @@ pub mod day1 {
     };
 
     use anyhow::Result;
-    use itertools::Itertools;
 
     fn parse_line(line: &[u8]) -> (u32, u32) {
         debug_assert!(13 <= line.len() && line.len() <= 14);
@@ -43,27 +42,20 @@ pub mod day1 {
     }
 
     pub fn part_2(input: &str, output: &mut impl Write) -> Result<()> {
-        let (mut first, mut second) = parse(input);
-        first.sort_unstable();
-        second.sort_unstable();
+        let mut left = Vec::with_capacity(1024);
+        // from 10'000 to 99'999
+        let mut right = [0_u8; 100_000];
 
-        let mut first = first.into_iter();
-        let mut second = second.into_iter();
-        let mut answer = 0;
-        loop {
-            if first.is_empty() || second.is_empty() {
-                break;
-            }
-            let current_number = first.next().unwrap();
-            let first_count = first.take_while_ref(|x| *x == current_number).count() + 1;
+        input.as_bytes().chunks(14).for_each(|line| {
+            let (l, r) = parse_line(line);
+            left.push(l);
+            right[r as usize] += 1;
+        });
 
-            second
-                .take_while_ref(|x| *x < current_number)
-                .for_each(|_| {});
-            let second_count = second.take_while_ref(|x| *x == current_number).count();
-
-            answer += current_number as usize * first_count * second_count;
-        }
+        let answer = left
+            .into_iter()
+            .map(|x| x * right[x as usize] as u32)
+            .sum::<u32>();
 
         writeln!(output, "{answer}")?;
 

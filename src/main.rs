@@ -37,6 +37,6 @@ impl std::io::Write for FakeOutput {
 fn main() {
     let input = include_str!("../input.txt");
     for _ in 0..400_000 {
-        let _ = aoc_2024::day1::part_1(input, &mut FakeOutput::new());
+        let _ = aoc_2024::day1::part_2(input, &mut FakeOutput::new());
     }
 }
