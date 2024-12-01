@@ -2,3 +2,7 @@ answer.txt
 example.txt
 input.txt
 target/
+
+flamegraph.svg
+perf.data
+perf.data.old
