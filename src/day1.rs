@@ -5,17 +5,26 @@ use std::{
 
 use anyhow::Result;
 
+/// Works only on data:
+/// "xxxxx   yyyyy"
 fn parse_line(line: &[u8]) -> (u32, u32) {
     debug_assert!(13 <= line.len() && line.len() <= 14);
-    const WEIGHTS: u32x8 = u32x8::from_slice(&[10000u32, 1000u32, 100u32, 10u32, 1u32, 0, 0, 0]);
-    const ZERO: u32x8 = u32x8::from_slice(&[b'0' as u32; 8]);
-    let left_simd: u32x8 = u8x8::load_or_default(&line[..5]).cast();
-    let right_simd: u32x8 = u8x8::load_or_default(&line[8..13]).cast();
+    const LEFT_WEIGHTS: u32x8 =
+        u32x8::from_array([10000u32, 1000u32, 100u32, 10u32, 1u32, 0, 0, 0]);
+    const RIGHT_WEIGHTS: u32x8 =
+        u32x8::from_array([0, 0, 0, 10000u32, 1000u32, 100u32, 10u32, 1u32]);
+    const ZERO: u32x8 = u32x8::from_array([b'0' as u32; 8]);
+
+    let left_simd: u32x8 =
+        u8x8::from_array(unsafe { line[0..8].try_into().unwrap_unchecked() }).cast();
+    let right_simd: u32x8 =
+        u8x8::from_array(unsafe { line[5..13].try_into().unwrap_unchecked() }).cast();
     (
-        ((left_simd - ZERO) * WEIGHTS).reduce_sum(),
-        ((right_simd - ZERO) * WEIGHTS).reduce_sum(),
+        ((left_simd - ZERO) * LEFT_WEIGHTS).reduce_sum(),
+        ((right_simd - ZERO) * RIGHT_WEIGHTS).reduce_sum(),
     )
 }
+
 fn parse(input: &str) -> (Vec<u32>, Vec<u32>) {
     input.trim().as_bytes().chunks(14).map(parse_line).unzip()
 }
