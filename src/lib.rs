@@ -6,22 +6,22 @@ pub mod day2 {
 
     use anyhow::Result;
     use itertools::Itertools;
+    use nom::{bytes::complete::tag, multi::separated_list0};
 
-    fn parse(input: &str) -> Vec<Vec<u64>> {
-        input
-            .lines()
-            .map(|line| {
-                line.split_whitespace()
-                    .map(|x| x.parse().unwrap())
-                    .collect()
-            })
-            .collect()
+    fn parse(input: &str) -> Vec<Vec<u8>> {
+        use nom::character::complete::u8;
+        // TODO: Use iterator to create SmallVec instead of Vec.
+        let (_tail, a) =
+            separated_list0(tag::<_, _, ()>("\n"), separated_list0(tag(" "), u8))(input.as_bytes())
+                .unwrap();
+        debug_assert!(_tail.is_empty());
+        a
     }
 
     fn is_valid(level: i32) -> bool {
         (1..=3).contains(&level)
     }
-    fn validate_report(report: Vec<u64>, has_extra_attempt: bool) -> bool {
+    fn validate_report(report: Vec<u8>, has_extra_attempt: bool) -> bool {
         fn is_increasing(mut diffs: Vec<i32>, mut has_extra_attempt: bool) -> bool {
             for i in 0..diffs.len() {
                 let item = diffs[i];
@@ -69,7 +69,7 @@ pub mod day2 {
     }
 
     pub fn part_1(input: &str, output: &mut impl Write) -> Result<()> {
-        let input = parse(input);
+        let input = parse(input.trim());
         let answer: u32 = input
             .into_iter()
             .map(|report| validate_report(report, false) as u32)

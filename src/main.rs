@@ -41,22 +41,22 @@ fn main() -> anyhow::Result<()> {
             1 => match args.part {
                 1 => bench!(
                     aoc_2024::day1::part_1(&input, &mut FakeOutput::new()),
-                    400_000
+                    600_000
                 ),
                 2 => bench!(
                     aoc_2024::day1::part_2(&input, &mut FakeOutput::new()),
-                    400_000
+                    600_000
                 ),
                 _ => todo!(),
             },
             2 => match args.part {
                 1 => bench!(
                     aoc_2024::day2::part_1(&input, &mut FakeOutput::new()),
-                    10_000
+                    30_000
                 ),
                 2 => bench!(
                     aoc_2024::day2::part_2(&input, &mut FakeOutput::new()),
-                    10_000
+                    30_000
                 ),
                 _ => todo!(),
             },
