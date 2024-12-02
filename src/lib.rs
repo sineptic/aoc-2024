@@ -1,103 +1,131 @@
 #![feature(iter_collect_into, portable_simd)]
 
-pub mod day1 {
-    use std::{
-        io::Write,
-        simd::{num::SimdUint, u32x8, u8x8},
-    };
+pub mod day1;
+pub mod day2 {
+    use std::io::Write;
 
     use anyhow::Result;
+    use itertools::Itertools;
 
-    fn parse_line(line: &[u8]) -> (u32, u32) {
-        debug_assert!(13 <= line.len() && line.len() <= 14);
-        const WEIGHTS: u32x8 =
-            u32x8::from_slice(&[10000u32, 1000u32, 100u32, 10u32, 1u32, 0, 0, 0]);
-        const ZERO: u32x8 = u32x8::from_slice(&[b'0' as u32; 8]);
-        let left_simd: u32x8 = u8x8::load_or_default(&line[..5]).cast();
-        let right_simd: u32x8 = u8x8::load_or_default(&line[8..13]).cast();
-        (
-            ((left_simd - ZERO) * WEIGHTS).reduce_sum(),
-            ((right_simd - ZERO) * WEIGHTS).reduce_sum(),
-        )
+    fn parse(input: &str) -> Vec<Vec<u64>> {
+        input
+            .lines()
+            .map(|line| {
+                line.split_whitespace()
+                    .map(|x| x.parse().unwrap())
+                    .collect()
+            })
+            .collect()
     }
-    fn parse(input: &str) -> (Vec<u32>, Vec<u32>) {
-        input.trim().as_bytes().chunks(14).map(parse_line).unzip()
+
+    fn is_valid(level: i32) -> bool {
+        (1..=3).contains(&level)
+    }
+    fn validate_report(report: Vec<u64>, has_extra_attempt: bool) -> bool {
+        fn is_increasing(mut diffs: Vec<i32>, mut has_extra_attempt: bool) -> bool {
+            for i in 0..diffs.len() {
+                let item = diffs[i];
+                if let Some(&next) = diffs.get(i + 1) {
+                    if !is_valid(next) && has_extra_attempt {
+                        if diffs.get(i + 2).is_none_or(|x| is_valid(next + x)) {
+                        } else {
+                            has_extra_attempt = false;
+                            diffs[i + 1] += diffs[i];
+                            continue;
+                        }
+                    }
+                }
+                if !is_valid(item) {
+                    if has_extra_attempt {
+                        has_extra_attempt = false;
+
+                        if i == 0 {
+                            continue;
+                        }
+                        if i + 1 < diffs.len() {
+                            diffs[i + 1] += item;
+                            continue;
+                        }
+                        if i + 1 == diffs.len() {
+                            continue;
+                        }
+                        unreachable!();
+                    } else {
+                        return false;
+                    }
+                }
+            }
+            true
+        }
+        let diffs = report
+            .windows(2)
+            .map(|nums| nums[1] as i32 - nums[0] as i32)
+            .collect_vec();
+
+        let increasing = is_increasing(diffs.clone(), has_extra_attempt);
+        let decreasing = is_increasing(diffs.into_iter().map(|x| -x).collect(), has_extra_attempt);
+
+        increasing || decreasing
     }
 
     pub fn part_1(input: &str, output: &mut impl Write) -> Result<()> {
-        let (mut first, mut second) = parse(input);
-
-        first.sort_unstable();
-        second.sort_unstable();
-
-        let answer = first
+        let input = parse(input);
+        let answer: u32 = input
             .into_iter()
-            .zip(second)
-            .map(|(a, b)| a.abs_diff(b))
-            .sum::<u32>();
+            .map(|report| validate_report(report, false) as u32)
+            .sum();
 
         writeln!(output, "{answer}")?;
-
         Ok(())
     }
 
     pub fn part_2(input: &str, output: &mut impl Write) -> Result<()> {
-        let mut left = Vec::with_capacity(1024);
-        // from 10'000 to 99'999
-        let mut right = [0_u8; 100_000];
+        let input = parse(input);
 
-        input.as_bytes().chunks(14).for_each(|line| {
-            let (l, r) = parse_line(line);
-            left.push(l);
-            right[r as usize] += 1;
-        });
-
-        let answer = left
+        let answer: u32 = input
             .into_iter()
-            .map(|x| x * right[x as usize] as u32)
-            .sum::<u32>();
+            .map(|report| validate_report(report, true) as u32)
+            .sum();
 
         writeln!(output, "{answer}")?;
-
         Ok(())
     }
 
     #[cfg(test)]
     mod test {
         use super::*;
-
         #[test]
-        fn day_1_1() {
+        fn day_2_1() {
             let input = "
-00003   00004
-00004   00003
-00002   00005
-00001   00003
-00003   00009
-00003   00003
+7 6 4 2 1
+1 2 7 8 9
+9 7 6 2 1
+1 3 2 4 5
+8 6 4 4 1
+1 3 6 7 9
 "
             .trim();
             let answer = "
-11
-"
+2
+    "
             .trim();
             let mut my_answer = Vec::new();
             part_1(input, &mut my_answer).unwrap();
             assert_eq!(String::from_utf8(my_answer).unwrap().trim(), answer.trim());
         }
         #[test]
-        fn day_1_2() {
+        fn day_2_2() {
             let input = "
-00003   00004
-00004   00003
-00002   00005
-00001   00003
-00003   00009
-00003   00003
-    "
+7 6 4 2 1
+1 2 7 8 9
+9 7 6 2 1
+1 3 2 4 5
+8 6 4 4 1
+1 3 6 7 9
+"
             .trim();
             let answer = "
-31
+4
     "
             .trim();
             let mut my_answer = Vec::new();
