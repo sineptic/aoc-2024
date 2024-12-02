@@ -1,7 +1,7 @@
 # Running
 
 ```
-cargo r -r -- day_{day}_{part}
+cargo r -r -- {day} {part}
 ```
 
 ```
@@ -9,7 +9,7 @@ cargo bench
 ```
 
 ```
-cargo flamegraph --release
+cargo flamegraph --release -- --bench {day} {part}
 ```
 
 # Results
