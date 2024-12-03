@@ -1,27 +1,127 @@
-#![feature(iter_collect_into, portable_simd)]
+#![feature(iter_collect_into, portable_simd, unbounded_shifts)]
 
 pub mod day1;
 pub mod day2 {
-    use std::io::Write;
+    use std::{
+        cmp::min,
+        io::Write,
+        simd::{cmp::SimdPartialEq, u8x16, u8x32, Mask, Simd},
+        sync::LazyLock,
+    };
 
     use anyhow::Result;
     use itertools::Itertools;
-    use nom::{bytes::complete::tag, multi::separated_list0};
+    use smallvec::SmallVec;
 
-    fn parse(input: &str) -> Vec<Vec<u8>> {
-        use nom::character::complete::u8;
-        // TODO: Use iterator to create SmallVec instead of Vec.
-        let (_tail, a) =
-            separated_list0(tag::<_, _, ()>("\n"), separated_list0(tag(" "), u8))(input.as_bytes())
-                .unwrap();
-        debug_assert!(_tail.is_empty());
-        a
+    fn generate_lookup_table() -> Vec<Simd<u8, 16>> {
+        let mut answer = vec![u8x16::default(); 2_usize.pow(16)];
+        for mut i in 0..=u16::MAX {
+            let i_copy = i;
+            let mut curr_answer = Vec::new();
+            let mut shifted = 0;
+            while i.leading_zeros() != 16 {
+                let temp = i.leading_zeros() + 1;
+                shifted += temp;
+                curr_answer.push((shifted - 1) as u8);
+                i = i.unbounded_shl(temp);
+            }
+            curr_answer.resize(16, 0);
+            answer[i_copy as usize] = u8x16::from_slice(&curr_answer);
+        }
+        answer
+    }
+
+    fn parse_line_simd(line: &[u8]) -> SmallVec<[u8; 8]> {
+        // eprintln!("input:       '{line:<32}'");
+
+        const WHITESPACES: u8x32 = u8x32::from_array([b' '; 32]);
+
+        let mut buf = [b' '; 32];
+        buf[0..line.len()].copy_from_slice(line);
+
+        let line = u8x32::from_array(buf);
+
+        let whitespaces = line.simd_eq(WHITESPACES);
+        let _whitespaces_bitmask = whitespaces.to_bitmask() as u32;
+
+        let is_digit = !whitespaces;
+        let is_digit_bitmask = is_digit.to_bitmask() as u32;
+
+        let tens_bitmask = is_digit_bitmask >> 1 & is_digit_bitmask;
+        let ones_bitmask = is_digit_bitmask ^ tens_bitmask;
+
+        let numbers = line - u8x32::splat(b'0');
+        let ones_mask = Mask::from_bitmask(ones_bitmask as u64);
+        let ones = ones_mask.select(numbers, u8x32::splat(0));
+        let tens = (Mask::from_bitmask(tens_bitmask as u64)).select(numbers, u8x32::splat(0))
+            * u8x32::splat(10);
+        let digits = tens + ones;
+        let numbers_with_garbage = digits + digits.rotate_elements_right::<1>();
+        let numbers = ones_mask.select(numbers_with_garbage, u8x32::splat(0));
+
+        static LOOKUP_TABLE: LazyLock<Vec<u8x16>> = LazyLock::new(generate_lookup_table);
+
+        let numbers_part0 = numbers.to_array()[0..16].try_into().unwrap();
+        let numbers_part0 = u8x16::from_array(numbers_part0);
+        let numbers_part0_bitmask = (ones_bitmask.reverse_bits() >> 16) as u16;
+        let numbers_part0 = numbers_part0
+            .swizzle_dyn(LOOKUP_TABLE[numbers_part0_bitmask as usize])
+            .to_array();
+
+        let numbers_part1 = numbers.to_array()[16..32].try_into().unwrap();
+        let numbers_part1 = u8x16::from_array(numbers_part1);
+        let numbers_part1_bitmask = ones_bitmask.reverse_bits() as u16;
+        let numbers_part1 = numbers_part1
+            .swizzle_dyn(LOOKUP_TABLE[numbers_part1_bitmask as usize])
+            .to_array();
+
+        numbers_part0
+            .into_iter()
+            .take(numbers_part0_bitmask.count_ones() as usize)
+            .chain(
+                numbers_part1
+                    .into_iter()
+                    .take(numbers_part1_bitmask.count_ones() as usize),
+            )
+            .collect()
+        // answer.extend_from_slice(&numbers_part0[0..numbers_part0_bitmask.count_ones() as usize]);
+        // answer.extend_from_slice(&numbers_part1[0..numbers_part1_bitmask.count_ones() as usize]);
+
+        // eprintln!("whitespaces: '{:032b}'", _whitespaces_bitmask.reverse_bits());
+        // eprintln!("is number:   '{:032b}'", is_digit_bitmask.reverse_bits());
+        // eprintln!("tens:        '{:032b}'", tens_bitmask.reverse_bits());
+        // eprintln!("ones:        '{:032b}'", ones_bitmask.reverse_bits());
+    }
+    fn parse_simd(input_str: &str) -> Vec<SmallVec<[u8; 8]>> {
+        let input = input_str.as_bytes();
+        let mut prev_newline = 0;
+        let mut answer = Vec::with_capacity(1024);
+        loop {
+            let mut buf = [0; 32];
+            buf[..(min(32, input.len() - prev_newline))]
+                .copy_from_slice(&input[prev_newline..(min(prev_newline + 32, input.len()))]);
+            let simd_input = u8x32::from_array(buf);
+            let next_newline = prev_newline
+                + (simd_input
+                    .simd_eq(u8x32::from_array([b'\n'; 32]))
+                    .to_bitmask() as u32)
+                    .reverse_bits()
+                    .leading_zeros() as usize;
+            if next_newline >= input.len() {
+                answer.push(parse_line_simd(&input[prev_newline..input.len()]));
+                return answer;
+            }
+            answer.push(parse_line_simd(&input[prev_newline..next_newline]));
+
+            prev_newline = next_newline + 1;
+        }
+        // input.lines().map(parse_line_simd).collect()
     }
 
     fn is_valid(level: i32) -> bool {
         (1..=3).contains(&level)
     }
-    fn validate_report(report: Vec<u8>, has_extra_attempt: bool) -> bool {
+    fn validate_report(report: SmallVec<[u8; 8]>, has_extra_attempt: bool) -> bool {
         fn is_increasing(mut diffs: Vec<i32>, mut has_extra_attempt: bool) -> bool {
             for i in 0..diffs.len() {
                 let item = diffs[i];
@@ -69,7 +169,7 @@ pub mod day2 {
     }
 
     pub fn part_1(input: &str, output: &mut impl Write) -> Result<()> {
-        let input = parse(input.trim());
+        let input = parse_simd(input.trim());
         let answer: u32 = input
             .into_iter()
             .map(|report| validate_report(report, false) as u32)
@@ -80,7 +180,7 @@ pub mod day2 {
     }
 
     pub fn part_2(input: &str, output: &mut impl Write) -> Result<()> {
-        let input = parse(input);
+        let input = parse_simd(input.trim());
 
         let answer: u32 = input
             .into_iter()
