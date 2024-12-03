@@ -81,6 +81,7 @@ dependencies = [
  "criterion",
  "fxhash",
  "itertools 0.13.0",
+ "memchr",
  "nom",
  "smallvec",
 ]

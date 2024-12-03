@@ -60,6 +60,11 @@ fn main() -> anyhow::Result<()> {
                 ),
                 _ => todo!(),
             },
+            3 => match args.part {
+                1 => bench!(aoc_2024::day3::part_1(&input, &mut FakeOutput::new()), 100),
+                2 => bench!(aoc_2024::day3::part_2(&input, &mut FakeOutput::new()), 100),
+                _ => todo!(),
+            },
 
             day => panic!("solution {day} not found"),
         };
@@ -74,6 +79,11 @@ fn main() -> anyhow::Result<()> {
             2 => match args.part {
                 1 => aoc_2024::day2::part_1(&input, &mut stdout())?,
                 2 => aoc_2024::day2::part_2(&input, &mut stdout())?,
+                _ => todo!(),
+            },
+            3 => match args.part {
+                1 => aoc_2024::day3::part_1(&input, &mut stdout())?,
+                2 => aoc_2024::day3::part_2(&input, &mut stdout())?,
                 _ => todo!(),
             },
             day => panic!("solution {day} not found"),
