@@ -3,6 +3,7 @@ use std::{io::Write, sync::LazyLock};
 use fxhash::FxHashSet;
 use itertools::Itertools;
 use memchr::memmem::Finder;
+use smallvec::SmallVec;
 
 pub fn part_1(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
     let lines = input.lines().map(|line| line.as_bytes()).collect_vec();
@@ -83,18 +84,40 @@ pub fn part_2(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
     let diag1 = diag1
         .iter()
         .enumerate()
-        .flat_map(|(row, chars)| find_mas(chars).map(move |col| (row + col - (len - 1), col)))
-        .collect::<FxHashSet<_>>();
+        .flat_map(|(row, chars)| find_mas(chars).map(move |col| (row + col - (len - 1), col)));
     let diag2 = diag2
         .iter()
         .enumerate()
-        .flat_map(|(row, chars)| find_mas(chars).map(move |col| (row - col, col)))
-        .collect::<FxHashSet<_>>();
+        .flat_map(|(row, chars)| find_mas(chars).map(move |col| (row - col, col)));
 
-    let answer = diag1.intersection(&diag2).count();
+    let answer = part2_find_answer(len, diag1, diag2);
+
     writeln!(output, "{answer}")?;
     Ok(())
 }
+fn part2_find_answer(
+    len: usize,
+    diag1: impl Iterator<Item = (usize, usize)>,
+    diag2: impl Iterator<Item = (usize, usize)>,
+) -> i32 {
+    let mut table = SmallVec::<[SmallVec<[bool; 256]>; 256]>::new();
+    table.resize_with(len, || {
+        let mut a = SmallVec::<[bool; 256]>::new();
+        a.resize(len, false);
+        a
+    });
+    for (i, j) in diag1 {
+        table[i][j] = true;
+    }
+    let mut answer = 0;
+    for (i, j) in diag2 {
+        if table[i][j] {
+            answer += 1;
+        }
+    }
+    answer
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
