@@ -24,3 +24,11 @@ part 2 -  5.4 us
 part 1 - 166 us 
 
 part 2 - 175 us 
+
+## Day 3 
+TODO
+
+## Day 4
+part 1 - 305 us 
+
+part 2 - 669 us 

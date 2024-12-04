@@ -1,5 +1,6 @@
 use std::{collections::HashSet, io::Write, sync::LazyLock};
 
+use fxhash::FxHashSet;
 use itertools::Itertools;
 use memchr::memmem::Finder;
 
