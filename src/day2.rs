@@ -7,17 +7,10 @@ use std::{
 
 use anyhow::Result;
 use itertools::Itertools;
-use nom::{
-    bytes::complete::tag,
-    character::complete::u64,
-    combinator::iterator,
-    sequence::{delimited, separated_pair},
-    AsBytes, IResult,
-};
 use smallvec::SmallVec;
 
-fn generate_lookup_table() -> Vec<Simd<u8, 16>> {
-    let mut answer = vec![u8x16::default(); 2_usize.pow(16)];
+fn generate_lookup_table() -> Vec<[u8; 16]> {
+    let mut answer = vec![[0; 16]; 2_usize.pow(16)];
     for mut i in 0..=u16::MAX {
         let i_copy = i;
         let mut curr_answer = Vec::new();
@@ -29,7 +22,7 @@ fn generate_lookup_table() -> Vec<Simd<u8, 16>> {
             i = i.unbounded_shl(temp);
         }
         curr_answer.resize(16, 0);
-        answer[i_copy as usize] = u8x16::from_slice(&curr_answer);
+        answer[i_copy as usize] = curr_answer.try_into().unwrap();
     }
     answer
 }
@@ -44,48 +37,43 @@ fn parse_line_simd(line: &[u8]) -> SmallVec<[u8; 8]> {
 
     let line = u8x32::from_array(buf);
 
-    let whitespaces = line.simd_eq(WHITESPACES);
-    let _whitespaces_bitmask = whitespaces.to_bitmask() as u32;
-
-    let is_digit = !whitespaces;
+    let is_digit = !line.simd_eq(WHITESPACES);
     let is_digit_bitmask = is_digit.to_bitmask() as u32;
 
     let tens_bitmask = is_digit_bitmask >> 1 & is_digit_bitmask;
     let ones_bitmask = is_digit_bitmask ^ tens_bitmask;
+    let ones_mask = Mask::from_bitmask(ones_bitmask as u64);
 
     let numbers = line - u8x32::splat(b'0');
-    let ones_mask = Mask::from_bitmask(ones_bitmask as u64);
-    let ones = ones_mask.select(numbers, u8x32::splat(0));
-    let tens = (Mask::from_bitmask(tens_bitmask as u64)).select(numbers, u8x32::splat(0))
-        * u8x32::splat(10);
-    let digits = tens + ones;
-    let numbers_with_garbage = digits + digits.rotate_elements_right::<1>();
-    let numbers = ones_mask.select(numbers_with_garbage, u8x32::splat(0));
 
-    static LOOKUP_TABLE: LazyLock<Vec<u8x16>> = LazyLock::new(generate_lookup_table);
+    let numbers = ones_mask.select(
+        numbers + (numbers.rotate_elements_right::<1>() * u8x32::splat(10)),
+        u8x32::splat(0),
+    );
 
-    let numbers_part0 = numbers.to_array()[0..16].try_into().unwrap();
-    let numbers_part0 = u8x16::from_array(numbers_part0);
+    static LOOKUP_TABLE: LazyLock<Vec<[u8; 16]>> = LazyLock::new(generate_lookup_table);
+
+    let mut lookup_table = [0; 32];
     let numbers_part0_bitmask = (ones_bitmask.reverse_bits() >> 16) as u16;
-    let numbers_part0 = numbers_part0
-        .swizzle_dyn(LOOKUP_TABLE[numbers_part0_bitmask as usize])
-        .to_array();
-
-    let numbers_part1 = numbers.to_array()[16..32].try_into().unwrap();
-    let numbers_part1 = u8x16::from_array(numbers_part1);
     let numbers_part1_bitmask = ones_bitmask.reverse_bits() as u16;
-    let numbers_part1 = numbers_part1
-        .swizzle_dyn(LOOKUP_TABLE[numbers_part1_bitmask as usize])
-        .to_array();
-
-    numbers_part0
+    lookup_table[0..16].copy_from_slice(&LOOKUP_TABLE[numbers_part0_bitmask as usize]);
+    for (i, a) in LOOKUP_TABLE[numbers_part1_bitmask as usize]
         .into_iter()
+        .enumerate()
+    {
+        lookup_table[i + 16] = a + 16;
+    }
+    let numbers = numbers.swizzle_dyn(u8x32::from_array(lookup_table));
+
+    numbers[0..16]
+        .iter()
         .take(numbers_part0_bitmask.count_ones() as usize)
         .chain(
-            numbers_part1
-                .into_iter()
+            numbers[16..32]
+                .iter()
                 .take(numbers_part1_bitmask.count_ones() as usize),
         )
+        .copied()
         .collect()
     // answer.extend_from_slice(&numbers_part0[0..numbers_part0_bitmask.count_ones() as usize]);
     // answer.extend_from_slice(&numbers_part1[0..numbers_part1_bitmask.count_ones() as usize]);
@@ -192,4 +180,48 @@ pub fn part_2(input: &str, output: &mut impl Write) -> Result<()> {
 
     writeln!(output, "{answer}")?;
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn day_2_1() {
+        let input = "
+7 6 4 2 1
+1 2 7 8 9
+9 7 6 2 1
+1 3 2 4 5
+8 6 4 4 1
+1 3 6 7 9
+"
+        .trim();
+        let answer = "
+2
+"
+        .trim();
+        let mut my_answer = Vec::new();
+        part_1(input, &mut my_answer).unwrap();
+        assert_eq!(String::from_utf8(my_answer).unwrap().trim(), answer.trim());
+    }
+    #[test]
+    fn day_2_2() {
+        let input = "
+7 6 4 2 1
+1 2 7 8 9
+9 7 6 2 1
+1 3 2 4 5
+8 6 4 4 1
+1 3 6 7 9
+    "
+        .trim();
+        let answer = "
+4
+    "
+        .trim();
+        let mut my_answer = Vec::new();
+        part_2(input, &mut my_answer).unwrap();
+        assert_eq!(String::from_utf8(my_answer).unwrap().trim(), answer.trim());
+    }
 }
