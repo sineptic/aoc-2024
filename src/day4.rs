@@ -1,6 +1,5 @@
 use std::{io::Write, sync::LazyLock};
 
-use fxhash::FxHashSet;
 use itertools::Itertools;
 use memchr::memmem::Finder;
 use smallvec::SmallVec;
@@ -12,29 +11,19 @@ pub fn part_1(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
     let mut diag1 = Vec::new();
     let mut diag2 = Vec::new();
     let mut vert = Vec::new();
-    diag1.resize_with(2 * len - 1, || {
-        let mut a = Vec::new();
-        a.resize(len, b' ');
-        a
-    });
-    diag2.resize_with(2 * len - 1, || {
-        let mut a = Vec::new();
-        a.resize(len, b' ');
-        a
-    });
-    vert.resize_with(len, || {
-        let mut a = Vec::new();
-        a.resize(len, b' ');
-        a
-    });
+    let mut horiz = Vec::new();
+    diag1.resize((2 * len - 1) * (len + 1), b' ');
+    diag2.resize((2 * len - 1) * (len + 1), b' ');
+    vert.resize(len * (len + 1), b' ');
+    horiz.resize(len * (len + 1), b' ');
     for row in 0..len {
         for col in 0..len {
-            diag1[len - 1 + row - col][col] = lines[row][col];
-            diag2[row + col][col] = lines[row][col];
-            vert[col][row] = lines[row][col];
+            diag1[(len - 1 + row - col) * (len + 1) + col] = lines[row][col];
+            diag2[(row + col) * (len + 1) + col] = lines[row][col];
+            vert[col * (len + 1) + row] = lines[row][col];
+            horiz[row * (len + 1) + col] = lines[row][col];
         }
     }
-    let horiz = lines;
 
     fn find_xmas(input: &[u8]) -> usize {
         static XMAS: LazyLock<Finder> = LazyLock::new(|| Finder::new(b"XMAS"));
@@ -42,12 +31,7 @@ pub fn part_1(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
         XMAS.find_iter(input).count() + SAMX.find_iter(input).count()
     }
 
-    let horiz = horiz.into_iter().map(find_xmas).sum::<usize>();
-    let diag1 = diag1.into_iter().map(|x| find_xmas(&x)).sum::<usize>();
-    let diag2 = diag2.into_iter().map(|x| find_xmas(&x)).sum::<usize>();
-    let vert = vert.into_iter().map(|x| find_xmas(&x)).sum::<usize>();
-
-    let answer = horiz + vert + diag1 + diag2;
+    let answer = find_xmas(&horiz) + find_xmas(&vert) + find_xmas(&diag1) + find_xmas(&diag2);
     writeln!(output, "{answer}")?;
     Ok(())
 }
