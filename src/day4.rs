@@ -1,4 +1,4 @@
-use std::{collections::HashSet, io::Write, sync::LazyLock};
+use std::{io::Write, sync::LazyLock};
 
 use fxhash::FxHashSet;
 use itertools::Itertools;
@@ -84,12 +84,12 @@ pub fn part_2(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
         .iter()
         .enumerate()
         .flat_map(|(row, chars)| find_mas(chars).map(move |col| (row + col - (len - 1), col)))
-        .collect::<HashSet<_>>();
+        .collect::<FxHashSet<_>>();
     let diag2 = diag2
         .iter()
         .enumerate()
         .flat_map(|(row, chars)| find_mas(chars).map(move |col| (row - col, col)))
-        .collect::<HashSet<_>>();
+        .collect::<FxHashSet<_>>();
 
     let answer = diag1.intersection(&diag2).count();
     writeln!(output, "{answer}")?;
