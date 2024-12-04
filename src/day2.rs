@@ -1,7 +1,7 @@
 use std::{
     cmp::min,
     io::Write,
-    simd::{cmp::SimdPartialEq, u8x16, u8x32, Mask, Simd},
+    simd::{cmp::SimdPartialEq, u8x32, Mask},
     sync::LazyLock,
 };
 
