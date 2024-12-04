@@ -56,24 +56,16 @@ pub fn part_2(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
     let len = lines[0].len();
     let mut diag1 = Vec::new();
     let mut diag2 = Vec::new();
-    diag1.resize_with(2 * len - 1, || {
-        let mut a = Vec::new();
-        a.resize(len, b' ');
-        a
-    });
-    diag2.resize_with(2 * len - 1, || {
-        let mut a = Vec::new();
-        a.resize(len, b' ');
-        a
-    });
+    diag1.resize((2 * len - 1) * (len + 1), b' ');
+    diag2.resize((2 * len - 1) * (len + 1), b' ');
     for row in 0..len {
         for col in 0..len {
-            diag1[len - 1 + row - col][col] = lines[row][col];
-            diag2[row + col][col] = lines[row][col];
+            diag1[(len - 1 + row - col) * (len + 1) + col] = lines[row][col];
+            diag2[(row + col) * (len + 1) + col] = lines[row][col];
         }
     }
 
-    fn find_mas(input: &[u8]) -> impl Iterator<Item = usize> + '_ {
+    fn find_possible_matches(input: &[u8]) -> impl Iterator<Item = usize> + '_ {
         static MAS: LazyLock<Finder> = LazyLock::new(|| Finder::new(b"MAS"));
         static SAM: LazyLock<Finder> = LazyLock::new(|| Finder::new(b"SAM"));
         MAS.find_iter(input)
@@ -81,15 +73,16 @@ pub fn part_2(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
             .chain(SAM.find_iter(input).map(|x| x + 1))
     }
 
-    let diag1 = diag1
-        .iter()
-        .enumerate()
-        .flat_map(|(row, chars)| find_mas(chars).map(move |col| (row + col - (len - 1), col)));
-    let diag2 = diag2
-        .iter()
-        .enumerate()
-        .flat_map(|(row, chars)| find_mas(chars).map(move |col| (row - col, col)));
-
+    let diag1 = find_possible_matches(&diag1).map(|offset| {
+        let (row, col) = (offset / (len + 1), offset % (len + 1));
+        let initial_row = row + col - (len - 1);
+        initial_row * (len + 1) + col
+    });
+    let diag2 = find_possible_matches(&diag2).map(|offset| {
+        let (row, col) = (offset / (len + 1), offset % (len + 1));
+        let initial_row = row - col;
+        initial_row * (len + 1) + col
+    });
     let answer = part2_find_answer(len, diag1, diag2);
 
     writeln!(output, "{answer}")?;
@@ -97,21 +90,18 @@ pub fn part_2(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
 }
 fn part2_find_answer(
     len: usize,
-    diag1: impl Iterator<Item = (usize, usize)>,
-    diag2: impl Iterator<Item = (usize, usize)>,
+    diag1: impl Iterator<Item = usize>,
+    diag2: impl Iterator<Item = usize>,
 ) -> i32 {
-    let mut table = SmallVec::<[SmallVec<[bool; 256]>; 256]>::new();
-    table.resize_with(len, || {
-        let mut a = SmallVec::<[bool; 256]>::new();
-        a.resize(len, false);
-        a
-    });
-    for (i, j) in diag1 {
-        table[i][j] = true;
+    let mut table = SmallVec::<[bool; 2_usize.pow(16)]>::new();
+    table.resize((len + 1) * len, false);
+
+    for offset in diag1 {
+        table[offset] = true;
     }
     let mut answer = 0;
-    for (i, j) in diag2 {
-        if table[i][j] {
+    for offset in diag2 {
+        if table[offset] {
             answer += 1;
         }
     }
