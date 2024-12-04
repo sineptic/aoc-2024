@@ -44,7 +44,9 @@ fn day_2_2(c: &mut Criterion) {
 
 criterion_group! {
     name = benches;
-    config = Criterion::default().sample_size(1_000);
+    config = Criterion::default()
+        .sample_size(1_000)
+    ;
     targets = day_1_1, day_1_2, day_2_1, day_2_2,
 }
 criterion_main!(benches);
