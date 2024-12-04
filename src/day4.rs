@@ -8,14 +8,10 @@ pub fn part_1(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
     let lines = input.lines().map(|line| line.as_bytes()).collect_vec();
     let len = lines[0].len();
 
-    let mut diag1 = Vec::new();
-    let mut diag2 = Vec::new();
-    let mut vert = Vec::new();
-    let mut horiz = Vec::new();
-    diag1.resize((2 * len - 1) * (len + 1), b' ');
-    diag2.resize((2 * len - 1) * (len + 1), b' ');
-    vert.resize(len * (len + 1), b' ');
-    horiz.resize(len * (len + 1), b' ');
+    let mut diag1 = vec![b' '; (2 * len - 1) * (len + 1)];
+    let mut diag2 = vec![b' '; (2 * len - 1) * (len + 1)];
+    let mut vert = vec![b' '; len * (len + 1)];
+    let mut horiz = vec![b' '; len * (len + 1)];
     for row in 0..len {
         for col in 0..len {
             diag1[(len - 1 + row - col) * (len + 1) + col] = lines[row][col];
@@ -36,25 +32,24 @@ pub fn part_1(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
     Ok(())
 }
 pub fn part_2(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
-    let lines = input.lines().map(|line| line.as_bytes()).collect_vec();
-    let len = lines[0].len();
-    let mut diag1 = Vec::new();
-    let mut diag2 = Vec::new();
-    diag1.resize((2 * len - 1) * (len + 1), b' ');
-    diag2.resize((2 * len - 1) * (len + 1), b' ');
-    for row in 0..len {
-        for col in 0..len {
-            diag1[(len - 1 + row - col) * (len + 1) + col] = lines[row][col];
-            diag2[(row + col) * (len + 1) + col] = lines[row][col];
-        }
-    }
-
     fn find_possible_matches(input: &[u8]) -> impl Iterator<Item = usize> + '_ {
         static MAS: LazyLock<Finder> = LazyLock::new(|| Finder::new(b"MAS"));
         static SAM: LazyLock<Finder> = LazyLock::new(|| Finder::new(b"SAM"));
         MAS.find_iter(input)
             .map(|x| x + 1)
             .chain(SAM.find_iter(input).map(|x| x + 1))
+    }
+
+    let lines = input.lines().map(|line| line.as_bytes()).collect_vec();
+    let len = lines[0].len();
+
+    let mut diag1 = vec![b' '; (2 * len - 1) * (len + 1)];
+    let mut diag2 = vec![b' '; (2 * len - 1) * (len + 1)];
+    for row in 0..len {
+        for col in 0..len {
+            diag1[(len - 1 + row - col) * (len + 1) + col] = lines[row][col];
+            diag2[(row + col) * (len + 1) + col] = lines[row][col];
+        }
     }
 
     let diag1 = find_possible_matches(&diag1).map(|offset| {
@@ -67,6 +62,7 @@ pub fn part_2(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
         let initial_row = row - col;
         initial_row * (len + 1) + col
     });
+
     let answer = part2_find_answer(len, diag1, diag2);
 
     writeln!(output, "{answer}")?;
