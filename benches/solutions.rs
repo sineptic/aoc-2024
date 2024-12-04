@@ -42,11 +42,27 @@ fn day_2_2(c: &mut Criterion) {
     });
 }
 
+fn day_4_1(c: &mut Criterion) {
+    let input = include_str!("../data/day_4.txt");
+    c.bench_function("day_4_1", |b| {
+        b.iter(|| aoc_2024::day4::part_1(black_box(input), &mut FakeOutput::new()))
+    });
+}
+fn day_4_2(c: &mut Criterion) {
+    let input = include_str!("../data/day_4.txt");
+    c.bench_function("day_4_2", |b| {
+        b.iter(|| aoc_2024::day4::part_2(black_box(input), &mut FakeOutput::new()))
+    });
+}
+
 criterion_group! {
     name = benches;
     config = Criterion::default()
         .sample_size(1_000)
     ;
-    targets = day_1_1, day_1_2, day_2_1, day_2_2,
+    targets = day_1_1, day_1_2,
+              day_2_1, day_2_2,
+
+              day_4_1, day_4_2,
 }
 criterion_main!(benches);
