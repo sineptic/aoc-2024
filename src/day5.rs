@@ -105,9 +105,10 @@ pub fn part_2(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
                     enabled[a - 10] = b != u8::MAX;
                 }
             });
-            let mut answer = Vec::new();
             let mut modified = false;
-            while answer.len() < len {
+            let mut curr_len = 0;
+            let mut mid = None;
+            while curr_len < len {
                 for (i, val_rules) in rules.table.into_iter().enumerate() {
                     if enabled[i]
                         && val_rules
@@ -116,15 +117,18 @@ pub fn part_2(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
                             .map(|(a, b)| a && b)
                             .all(|x| !x)
                     {
-                        if vals[i + 10] as usize != answer.len() {
+                        if vals[i + 10] as usize != curr_len {
                             modified = true;
                         }
-                        answer.push(i + 10);
+                        curr_len += 1;
+                        if curr_len == len / 2 {
+                            mid = Some(i + 10);
+                        }
                         enabled[i] = false;
                     }
                 }
             }
-            answer[len / 2] * (modified as usize)
+            mid.unwrap() * (modified as usize)
         })
         .sum::<usize>();
 
