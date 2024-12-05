@@ -73,8 +73,61 @@ pub fn part_1(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
     writeln!(output, "{sum}")?;
     Ok(())
 }
+#[derive(Debug)]
+struct RulesTable {
+    pub table: [[bool; 100]; 100],
+}
+impl RulesTable {
+    fn parse(input: &str) -> (Self, &str) {
+        let mut rules = separated_list0(
+            tag::<_, _, ()>("\n"),
+            separated_pair(complete::u8, tag("|"), complete::u8),
+        );
+        let (tail, rules) = rules(input).unwrap();
+        let mut table = [[false; 100]; 100];
+        for rule in rules {
+            table[rule.1 as usize][rule.0 as usize] = true;
+        }
+
+        (Self { table }, &tail[2..])
+    }
+}
 pub fn part_2(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
-    todo!()
+    let (rules, tail) = RulesTable::parse(input);
+    let vals = parse_vals(tail.as_bytes());
+
+    let answer = vals
+        .into_iter()
+        .map(|(vals, len)| {
+            let mut enabled = [false; 100];
+            vals.into_iter().enumerate().for_each(|(a, b)| {
+                enabled[a] = b != u8::MAX;
+            });
+            let mut answer = Vec::new();
+            let mut modified = false;
+            while answer.len() < len {
+                for (i, val_rules) in rules.table.into_iter().enumerate() {
+                    if enabled[i]
+                        && val_rules
+                            .into_iter()
+                            .zip(enabled)
+                            .map(|(a, b)| a && b)
+                            .all(|x| !x)
+                    {
+                        if vals[i] as usize != answer.len() {
+                            modified = true;
+                        }
+                        answer.push(i);
+                        enabled[i] = false;
+                    }
+                }
+            }
+            answer[len / 2] * (modified as usize)
+        })
+        .sum::<usize>();
+
+    writeln!(output, "{answer}")?;
+    Ok(())
 }
 
 #[cfg(test)]
@@ -123,7 +176,7 @@ mod test {
     #[test]
     fn day_5_2() {
         let input = INPUT.trim();
-        let answer = 9.to_string();
+        let answer = 123.to_string();
         let mut my_answer = Vec::new();
         part_2(input, &mut my_answer).unwrap();
         assert_eq!(String::from_utf8(my_answer).unwrap().trim(), answer.trim());
