@@ -131,6 +131,7 @@ fn fix_line(vals: [u8; 100], len: usize, rules: &RulesTable) -> usize {
                     mid = Some(i + 10);
                 }
                 enabled[i] = false;
+                break;
             }
         }
     }

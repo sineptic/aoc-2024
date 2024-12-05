@@ -36,4 +36,4 @@ part 2 - 191 us
 ## Day 4
 part 1 - 127 us 
 
-part 2 - 391 us 
+part 2 - 363 us 
