@@ -98,42 +98,43 @@ pub fn part_2(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
 
     let answer = vals
         .into_iter()
-        .map(|(vals, len)| {
-            let mut enabled = [false; 90];
-            vals.into_iter().enumerate().for_each(|(a, b)| {
-                if a >= 10 {
-                    enabled[a - 10] = b != u8::MAX;
-                }
-            });
-            let mut modified = false;
-            let mut curr_len = 0;
-            let mut mid = None;
-            while curr_len < len {
-                for (i, val_rules) in rules.table.into_iter().enumerate() {
-                    if enabled[i]
-                        && val_rules
-                            .into_iter()
-                            .zip(enabled)
-                            .map(|(a, b)| a && b)
-                            .all(|x| !x)
-                    {
-                        if vals[i + 10] as usize != curr_len {
-                            modified = true;
-                        }
-                        curr_len += 1;
-                        if curr_len == len / 2 {
-                            mid = Some(i + 10);
-                        }
-                        enabled[i] = false;
-                    }
-                }
-            }
-            mid.unwrap() * (modified as usize)
-        })
+        .map(|(vals, len)| fix_line(vals, len, &rules))
         .sum::<usize>();
 
     writeln!(output, "{answer}")?;
     Ok(())
+}
+
+fn fix_line(vals: [u8; 100], len: usize, rules: &RulesTable) -> usize {
+    let mut enabled = [false; 90];
+    vals.into_iter().enumerate().for_each(|(a, b)| {
+        if a >= 10 {
+            enabled[a - 10] = b != u8::MAX;
+        }
+    });
+    let mut modified = false;
+    let mut curr_len = 0;
+    let mut mid = None;
+    while curr_len < len {
+        for (i, val_rules) in rules.table.iter().enumerate() {
+            if enabled[i]
+                && val_rules
+                    .iter()
+                    .copied()
+                    .zip(enabled)
+                    .map(|(a, b)| a && b)
+                    .all(|x| !x)
+            {
+                modified |= vals[i + 10] as usize != curr_len;
+                curr_len += 1;
+                if curr_len == len / 2 {
+                    mid = Some(i + 10);
+                }
+                enabled[i] = false;
+            }
+        }
+    }
+    mid.unwrap() * (modified as usize)
 }
 
 #[cfg(test)]
