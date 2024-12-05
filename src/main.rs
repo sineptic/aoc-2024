@@ -83,7 +83,7 @@ fn main() -> anyhow::Result<()> {
                 ),
                 2 => bench!(
                     aoc_2024::day5::part_2(&input, &mut FakeOutput::new()),
-                    50_000
+                    40_000
                 ),
                 _ => todo!(),
             },

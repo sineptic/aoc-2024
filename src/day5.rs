@@ -73,9 +73,9 @@ pub fn part_1(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
     writeln!(output, "{sum}")?;
     Ok(())
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct RulesTable {
-    pub table: [[bool; 90]; 90],
+    pub table: [u128; 90],
 }
 impl RulesTable {
     fn parse(input: &str) -> (Self, &str) {
@@ -84,9 +84,9 @@ impl RulesTable {
             separated_pair(complete::u8, tag("|"), complete::u8),
         );
         let (tail, rules) = rules(input).unwrap();
-        let mut table = [[false; 90]; 90];
+        let mut table = [0; 90];
         for rule in rules {
-            table[rule.1 as usize - 10][rule.0 as usize - 10] = true;
+            table[rule.1 as usize - 10] |= 1 << (rule.0 as usize - 10);
         }
 
         (Self { table }, &tail[2..])
@@ -98,39 +98,36 @@ pub fn part_2(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
 
     let answer = vals
         .into_iter()
-        .map(|(vals, len)| fix_line(vals, len, &rules))
+        .map(|(vals, len)| fix_line(vals, len, rules))
         .sum::<usize>();
 
     writeln!(output, "{answer}")?;
     Ok(())
 }
 
-fn fix_line(vals: [u8; 100], len: usize, rules: &RulesTable) -> usize {
-    let mut enabled = [false; 90];
+fn fix_line(vals: [u8; 100], len: usize, rules: RulesTable) -> usize {
+    let mut enabled = 0_u128;
     vals.into_iter().enumerate().for_each(|(a, b)| {
         if a >= 10 {
-            enabled[a - 10] = b != u8::MAX;
+            enabled |= ((b != u8::MAX) as u128) << (a - 10);
         }
     });
     let mut modified = false;
     let mut curr_len = 0;
     let mut mid = None;
     while curr_len < len {
-        for (i, val_rules) in rules.table.iter().enumerate() {
-            if enabled[i]
-                && val_rules
-                    .iter()
-                    .copied()
-                    .zip(enabled)
-                    .map(|(a, b)| a && b)
-                    .all(|x| !x)
-            {
+        // PERF: use {smth like enabled}.trailing_zeros() to get next candidate to check
+        for i in 0..90 {
+            if (enabled & (1 << i)) == 0 {
+                continue;
+            }
+            if rules.table[i] & enabled == 0 {
                 modified |= vals[i + 10] as usize != curr_len;
-                curr_len += 1;
                 if curr_len == len / 2 {
                     mid = Some(i + 10);
                 }
-                enabled[i] = false;
+                curr_len += 1;
+                enabled ^= 1 << i;
                 break;
             }
         }
