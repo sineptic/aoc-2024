@@ -32,3 +32,8 @@ TODO
 part 1 - 207 us 
 
 part 2 - 191 us 
+
+## Day 4
+part 1 - 127 us 
+
+part 2 - 634 us 

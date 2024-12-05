@@ -19,7 +19,9 @@ pub fn part_1(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
     writeln!(output, "{sum}")?;
     Ok(())
 }
-pub fn part_2(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
+
+// TODO:
+pub fn part_2(_input: &str, _output: &mut impl Write) -> anyhow::Result<()> {
     todo!()
 }
 #[cfg(test)]
