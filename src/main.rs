@@ -77,8 +77,14 @@ fn main() -> anyhow::Result<()> {
                 _ => todo!(),
             },
             5 => match args.part {
-                1 => bench!(aoc_2024::day5::part_1(&input, &mut FakeOutput::new()), 100),
-                2 => bench!(aoc_2024::day5::part_2(&input, &mut FakeOutput::new()), 100),
+                1 => bench!(
+                    aoc_2024::day5::part_1(&input, &mut FakeOutput::new()),
+                    200_000
+                ),
+                2 => bench!(
+                    aoc_2024::day5::part_2(&input, &mut FakeOutput::new()),
+                    50_000
+                ),
                 _ => todo!(),
             },
 
