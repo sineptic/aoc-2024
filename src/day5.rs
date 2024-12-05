@@ -75,7 +75,7 @@ pub fn part_1(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
 }
 #[derive(Debug)]
 struct RulesTable {
-    pub table: [[bool; 100]; 100],
+    pub table: [[bool; 90]; 90],
 }
 impl RulesTable {
     fn parse(input: &str) -> (Self, &str) {
@@ -84,9 +84,9 @@ impl RulesTable {
             separated_pair(complete::u8, tag("|"), complete::u8),
         );
         let (tail, rules) = rules(input).unwrap();
-        let mut table = [[false; 100]; 100];
+        let mut table = [[false; 90]; 90];
         for rule in rules {
-            table[rule.1 as usize][rule.0 as usize] = true;
+            table[rule.1 as usize - 10][rule.0 as usize - 10] = true;
         }
 
         (Self { table }, &tail[2..])
@@ -99,9 +99,11 @@ pub fn part_2(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
     let answer = vals
         .into_iter()
         .map(|(vals, len)| {
-            let mut enabled = [false; 100];
+            let mut enabled = [false; 90];
             vals.into_iter().enumerate().for_each(|(a, b)| {
-                enabled[a] = b != u8::MAX;
+                if a >= 10 {
+                    enabled[a - 10] = b != u8::MAX;
+                }
             });
             let mut answer = Vec::new();
             let mut modified = false;
@@ -114,10 +116,10 @@ pub fn part_2(input: &str, output: &mut impl Write) -> anyhow::Result<()> {
                             .map(|(a, b)| a && b)
                             .all(|x| !x)
                     {
-                        if vals[i] as usize != answer.len() {
+                        if vals[i + 10] as usize != answer.len() {
                             modified = true;
                         }
-                        answer.push(i);
+                        answer.push(i + 10);
                         enabled[i] = false;
                     }
                 }
