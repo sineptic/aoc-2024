@@ -33,7 +33,12 @@ part 1 - 207 us
 
 part 2 - 191 us 
 
-## Day 4
+## Day 5
 part 1 - 127 us 
 
 part 2 - 280 us 
+
+## Day 6
+part 1 - 53 us 
+
+part 2 - 893 ms 
