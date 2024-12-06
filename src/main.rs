@@ -33,91 +33,53 @@ macro_rules! bench {
         }
     };
 }
+macro_rules! day_bench_wrapper {
+    ($path:ident, $first_count:literal, $second_count:literal, $args:ident, $input:ident) => {{
+        match $args.part {
+            1 => bench!($path::part_1(&$input, &mut FakeOutput::new()), $first_count),
+            2 => bench!(
+                $path::part_2(&$input, &mut FakeOutput::new()),
+                $second_count
+            ),
+            part => panic!("unknown part {part}"),
+        }
+    }};
+}
+macro_rules! day_wrapper {
+    ($path:ident, $args:ident, $input:ident) => {{
+        match $args.part {
+            1 => $path::part_1(&$input, &mut stdout())?,
+            2 => $path::part_2(&$input, &mut stdout())?,
+            _ => todo!(),
+        }
+    }};
+}
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     if args.bench {
         let input = std::fs::read_to_string(format!("data/day_{}.txt", args.day))?;
+        use aoc_2024::*;
         match args.day {
-            1 => match args.part {
-                1 => bench!(
-                    aoc_2024::day1::part_1(&input, &mut FakeOutput::new()),
-                    600_000
-                ),
-                2 => bench!(
-                    aoc_2024::day1::part_2(&input, &mut FakeOutput::new()),
-                    600_000
-                ),
-                _ => todo!(),
-            },
-            2 => match args.part {
-                1 => bench!(
-                    aoc_2024::day2::part_1(&input, &mut FakeOutput::new()),
-                    100_000
-                ),
-                2 => bench!(
-                    aoc_2024::day2::part_2(&input, &mut FakeOutput::new()),
-                    100_000
-                ),
-                _ => todo!(),
-            },
-            3 => match args.part {
-                1 => bench!(aoc_2024::day3::part_1(&input, &mut FakeOutput::new()), 100),
-                2 => bench!(aoc_2024::day3::part_2(&input, &mut FakeOutput::new()), 100),
-                _ => todo!(),
-            },
-            4 => match args.part {
-                1 => bench!(
-                    aoc_2024::day4::part_1(&input, &mut FakeOutput::new()),
-                    80_000
-                ),
-                2 => bench!(
-                    aoc_2024::day4::part_2(&input, &mut FakeOutput::new()),
-                    80_000
-                ),
-                _ => todo!(),
-            },
-            5 => match args.part {
-                1 => bench!(
-                    aoc_2024::day5::part_1(&input, &mut FakeOutput::new()),
-                    200_000
-                ),
-                2 => bench!(
-                    aoc_2024::day5::part_2(&input, &mut FakeOutput::new()),
-                    40_000
-                ),
-                _ => todo!(),
-            },
+            1 => day_bench_wrapper!(day1, 600_000, 600_000, args, input),
+            2 => day_bench_wrapper!(day2, 100_000, 100_000, args, input),
+            3 => day_bench_wrapper!(day3, 100, 100, args, input),
+            4 => day_bench_wrapper!(day4, 80_000, 80_000, args, input),
+            5 => day_bench_wrapper!(day5, 200_000, 40_000, args, input),
+            6 => day_bench_wrapper!(day6, 100, 20, args, input),
 
             day => panic!("solution {day} not found"),
         };
     } else {
         let input = std::fs::read_to_string("input.txt")?;
+        use aoc_2024::*;
         match args.day {
-            1 => match args.part {
-                1 => aoc_2024::day1::part_1(&input, &mut stdout())?,
-                2 => aoc_2024::day1::part_2(&input, &mut stdout())?,
-                _ => todo!(),
-            },
-            2 => match args.part {
-                1 => aoc_2024::day2::part_1(&input, &mut stdout())?,
-                2 => aoc_2024::day2::part_2(&input, &mut stdout())?,
-                _ => todo!(),
-            },
-            3 => match args.part {
-                1 => aoc_2024::day3::part_1(&input, &mut stdout())?,
-                2 => aoc_2024::day3::part_2(&input, &mut stdout())?,
-                _ => todo!(),
-            },
-            4 => match args.part {
-                1 => aoc_2024::day4::part_1(&input, &mut stdout())?,
-                2 => aoc_2024::day4::part_2(&input, &mut stdout())?,
-                _ => todo!(),
-            },
-            5 => match args.part {
-                1 => aoc_2024::day5::part_1(&input, &mut stdout())?,
-                2 => aoc_2024::day5::part_2(&input, &mut stdout())?,
-                _ => todo!(),
-            },
+            1 => day_wrapper!(day1, args, input),
+            2 => day_wrapper!(day2, args, input),
+            3 => day_wrapper!(day3, args, input),
+            4 => day_wrapper!(day4, args, input),
+            5 => day_wrapper!(day5, args, input),
+            6 => day_wrapper!(day6, args, input),
+
             day => panic!("day {day} not found"),
         };
     }

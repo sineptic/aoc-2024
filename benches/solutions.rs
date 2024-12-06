@@ -66,6 +66,18 @@ fn day_5_2(c: &mut Criterion) {
         b.iter(|| aoc_2024::day5::part_2(black_box(input), &mut FakeOutput::new()))
     });
 }
+fn day_6_1(c: &mut Criterion) {
+    let input = include_str!("../data/day_6.txt");
+    c.bench_function("day_6_1", |b| {
+        b.iter(|| aoc_2024::day6::part_1(black_box(input), &mut FakeOutput::new()))
+    });
+}
+fn day_6_2(c: &mut Criterion) {
+    let input = include_str!("../data/day_6.txt");
+    c.bench_function("day_6_2", |b| {
+        b.iter(|| aoc_2024::day6::part_2(black_box(input), &mut FakeOutput::new()))
+    });
+}
 
 criterion_group! {
     name = benches;
@@ -77,5 +89,6 @@ criterion_group! {
 
               day_4_1, day_4_2,
               day_5_1, day_5_2,
+              day_6_1, day_6_2,
 }
 criterion_main!(benches);

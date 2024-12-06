@@ -1,4 +1,9 @@
-#![feature(iter_collect_into, portable_simd, unbounded_shifts)]
+#![feature(
+    iter_collect_into,
+    portable_simd,
+    unbounded_shifts,
+    strict_overflow_ops
+)]
 
 mod utils {
     pub fn _parse_digit(input: &[u8]) -> (u8, &[u8]) {
@@ -14,3 +19,4 @@ pub mod day2;
 pub mod day3;
 pub mod day4;
 pub mod day5;
+pub mod day6;
