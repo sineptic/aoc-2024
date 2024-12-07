@@ -66,7 +66,7 @@ fn main() -> anyhow::Result<()> {
             4 => day_bench_wrapper!(day4, 80_000, 80_000, args, input),
             5 => day_bench_wrapper!(day5, 200_000, 40_000, args, input),
             6 => day_bench_wrapper!(day6, 100, 20, args, input),
-            7 => day_bench_wrapper!(day7, 100, 30, args, input),
+            7 => day_bench_wrapper!(day7, 10_000, 500, args, input),
 
             day => panic!("solution {day} not found"),
         };

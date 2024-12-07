@@ -74,7 +74,15 @@ fn could_be_true2_inner(
         return false;
     }
     fn concat(a: u64, b: u64) -> u64 {
-        let log10 = (b as f64).log10() as u32;
+        fn fast_log(mut a: u64) -> u32 {
+            let mut answer = 0;
+            while a >= 10 {
+                answer += 1;
+                a /= 10;
+            }
+            answer
+        }
+        let log10 = fast_log(b);
         a * 10_u64.pow(log10 + 1) + b
     }
     could_be_true2_inner(Equation {
