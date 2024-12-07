@@ -44,6 +44,6 @@ part 1 - 53 us
 part 2 - 893 ms 
 
 ## Day 7
-part 1 - 2 ms 
+part 1 - 1.98 ms 
 
-part 2 - 53 ms
+part 2 - 52.3 ms

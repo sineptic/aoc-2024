@@ -11,33 +11,63 @@ fn parse(input: &str) -> impl Iterator<Item = (u64, Vec<u64>)> {
     result.into_iter()
 }
 
+#[derive(Debug, Clone, Copy)]
 struct Equation<'a> {
     needed: u64,
     current: u64,
     numbers: &'a [u64],
 }
-fn could_be_true_inner(
-    Equation {
-        needed,
-        current,
-        numbers,
-    }: Equation,
-) -> bool {
-    if numbers.is_empty() {
-        return needed == current;
+#[derive(Debug, Clone, Copy)]
+enum OpKind {
+    Add,
+    Multiply,
+    Concat,
+}
+impl Equation<'_> {
+    fn apply(self, op: OpKind) -> Self {
+        match op {
+            OpKind::Add => Self {
+                needed: self.needed,
+                current: self.current + self.numbers[0],
+                numbers: &self.numbers[1..],
+            },
+            OpKind::Multiply => Self {
+                needed: self.needed,
+                current: self.current * self.numbers[0],
+                numbers: &self.numbers[1..],
+            },
+            OpKind::Concat => {
+                fn concat(a: u64, b: u64) -> u64 {
+                    fn fast_log(mut a: u64) -> u32 {
+                        let mut answer = 0;
+                        while a >= 10 {
+                            answer += 1;
+                            a /= 10;
+                        }
+                        answer
+                    }
+                    let log10 = fast_log(b);
+                    a * 10_u64.pow(log10 + 1) + b
+                }
+                Self {
+                    needed: self.needed,
+                    current: concat(self.current, self.numbers[0]),
+                    numbers: &self.numbers[1..],
+                }
+            }
+        }
     }
-    if current > needed {
+}
+fn could_be_true_inner(equation: Equation) -> bool {
+    if equation.numbers.is_empty() {
+        return equation.needed == equation.current;
+    }
+    if equation.current > equation.needed {
         return false;
     }
-    could_be_true_inner(Equation {
-        needed,
-        current: current + numbers[0],
-        numbers: &numbers[1..],
-    }) || could_be_true_inner(Equation {
-        needed,
-        current: current * numbers[0],
-        numbers: &numbers[1..],
-    })
+
+    could_be_true_inner(equation.apply(OpKind::Add))
+        || could_be_true_inner(equation.apply(OpKind::Multiply))
 }
 fn could_be_true(needed: u64, numbers: &[u64]) -> bool {
     could_be_true_inner(Equation {
@@ -60,44 +90,17 @@ pub fn part_1(input: &str, output: &mut impl std::io::Write) -> anyhow::Result<(
     writeln!(output, "{answer}")?;
     Ok(())
 }
-fn could_be_true2_inner(
-    Equation {
-        needed,
-        current,
-        numbers,
-    }: Equation,
-) -> bool {
-    if numbers.is_empty() {
-        return needed == current;
+fn could_be_true2_inner(equation: Equation) -> bool {
+    if equation.numbers.is_empty() {
+        return equation.needed == equation.current;
     }
-    if current > needed {
+    if equation.current > equation.needed {
         return false;
     }
-    fn concat(a: u64, b: u64) -> u64 {
-        fn fast_log(mut a: u64) -> u32 {
-            let mut answer = 0;
-            while a >= 10 {
-                answer += 1;
-                a /= 10;
-            }
-            answer
-        }
-        let log10 = fast_log(b);
-        a * 10_u64.pow(log10 + 1) + b
-    }
-    could_be_true2_inner(Equation {
-        needed,
-        current: current + numbers[0],
-        numbers: &numbers[1..],
-    }) || could_be_true2_inner(Equation {
-        needed,
-        current: current * numbers[0],
-        numbers: &numbers[1..],
-    }) || could_be_true2_inner(Equation {
-        needed,
-        current: concat(current, numbers[0]),
-        numbers: &numbers[1..],
-    })
+
+    could_be_true2_inner(equation.apply(OpKind::Add))
+        || could_be_true2_inner(equation.apply(OpKind::Multiply))
+        || could_be_true2_inner(equation.apply(OpKind::Concat))
 }
 fn could_be_true2(needed: u64, numbers: &[u64]) -> bool {
     could_be_true2_inner(Equation {
