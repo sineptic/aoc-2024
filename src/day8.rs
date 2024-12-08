@@ -83,8 +83,8 @@ fn find_antinodes2(
                 second.1 as isize - first.1 as isize,
             );
 
-            let mut antinodes = Vec::new();
-            for i in -100..=100 {
+            let mut antinodes = ArrayVec::<_, 100>::new();
+            for i in -49..=49 {
                 antinodes.push(find_antinode(first, diff_row, diff_col, i));
             }
             antinodes
