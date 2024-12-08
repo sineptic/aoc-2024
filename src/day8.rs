@@ -124,8 +124,9 @@ pub fn part_2(input: &str, output: &mut impl std::io::Write) -> anyhow::Result<(
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::test_solution;
 
-    const INPUT: &str = "
+    const SMALL_INPUT: &str = "
 ............
 ........0...
 .....0......
@@ -139,21 +140,6 @@ mod test {
 ............
 ............
 ";
-
-    #[test]
-    fn day_8_1() {
-        let input = INPUT.trim();
-        let answer = 14.to_string();
-        let mut my_answer = Vec::new();
-        part_1(input, &mut my_answer).unwrap();
-        assert_eq!(String::from_utf8(my_answer).unwrap().trim(), answer.trim());
-    }
-    #[test]
-    fn day_8_2() {
-        let input = INPUT.trim();
-        let answer = 34.to_string();
-        let mut my_answer = Vec::new();
-        part_2(input, &mut my_answer).unwrap();
-        assert_eq!(String::from_utf8(my_answer).unwrap().trim(), answer.trim());
-    }
+    test_solution!(day_8_1_small, part_1, SMALL_INPUT, 14);
+    test_solution!(day_8_2_small, part_2, SMALL_INPUT, 34);
 }

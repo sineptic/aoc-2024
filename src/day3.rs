@@ -27,38 +27,11 @@ pub fn part_2(_input: &str, _output: &mut impl Write) -> anyhow::Result<()> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::test_solution;
 
-    #[test]
-    fn day_3_1() {
-        let input = "
+    const SMALL_INPUT: &str = "
 xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))
-"
-        .trim();
-        let answer = "
-161
-"
-        .trim();
-        let mut my_answer = Vec::new();
-        part_1(input, &mut my_answer).unwrap();
-        assert_eq!(String::from_utf8(my_answer).unwrap().trim(), answer.trim());
-    }
-    #[test]
-    fn day_3_2() {
-        let input = "
-00003   00004
-00004   00003
-00002   00005
-00001   00003
-00003   00009
-00003   00003
-    "
-        .trim();
-        let answer = "
-31
-    "
-        .trim();
-        let mut my_answer = Vec::new();
-        part_2(input, &mut my_answer).unwrap();
-        assert_eq!(String::from_utf8(my_answer).unwrap().trim(), answer.trim());
-    }
+";
+    test_solution!(day_3_1_small, part_1, SMALL_INPUT, 161);
+    // test_solution!(day_3_2_small, part_2, SMALL_INPUT, todo!());
 }

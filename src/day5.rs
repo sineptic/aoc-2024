@@ -138,8 +138,9 @@ fn fix_line(vals: [u8; 100], len: usize, rules: RulesTable) -> usize {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::test_solution;
 
-    const INPUT: &str = "
+    const SMALL_INPUT: &str = "
 47|53
 97|13
 97|61
@@ -169,21 +170,6 @@ mod test {
 61,13,29
 97,13,75,29,47
     ";
-
-    #[test]
-    fn day_5_1() {
-        let input = INPUT.trim();
-        let answer = 143.to_string();
-        let mut my_answer = Vec::new();
-        part_1(input, &mut my_answer).unwrap();
-        assert_eq!(String::from_utf8(my_answer).unwrap().trim(), answer.trim());
-    }
-    #[test]
-    fn day_5_2() {
-        let input = INPUT.trim();
-        let answer = 123.to_string();
-        let mut my_answer = Vec::new();
-        part_2(input, &mut my_answer).unwrap();
-        assert_eq!(String::from_utf8(my_answer).unwrap().trim(), answer.trim());
-    }
+    test_solution!(day_5_1_small, part_1, SMALL_INPUT, 143);
+    test_solution!(day_5_2_small, part_2, SMALL_INPUT, 123);
 }

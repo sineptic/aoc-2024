@@ -21,6 +21,19 @@ mod utils {
         // x = (sqrt(5 + 4 * sizse) - 1) / 2
         ((((size * 4 + 5) as f64).sqrt() - 1.) / 2.) as usize
     }
+    #[macro_export]
+    macro_rules! test_solution {
+        ($name:ident,$test_fn:ident, $input:ident, $answer:literal) => {
+            #[test]
+            fn $name() {
+                let input = $input.trim();
+                let answer = $answer.to_string();
+                let mut my_answer = Vec::new();
+                $test_fn(input, &mut my_answer).unwrap();
+                assert_eq!(String::from_utf8(my_answer).unwrap().trim(), answer.trim());
+            }
+        };
+    }
 }
 
 pub mod day1;

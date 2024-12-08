@@ -91,8 +91,9 @@ fn part2_find_answer(
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::test_solution;
 
-    const INPUT: &str = "
+    const SMALL_INPUT: &str = "
 MMMSXXMASM
 MSAMXMSMSA
 AMXSXMAAMM
@@ -105,20 +106,6 @@ MAMMMXMMMM
 MXMXAXMASX
 ";
 
-    #[test]
-    fn day_4_1() {
-        let input = INPUT.trim();
-        let answer = 18.to_string();
-        let mut my_answer = Vec::new();
-        part_1(input, &mut my_answer).unwrap();
-        assert_eq!(String::from_utf8(my_answer).unwrap().trim(), answer.trim());
-    }
-    #[test]
-    fn day_4_2() {
-        let input = INPUT.trim();
-        let answer = 9.to_string();
-        let mut my_answer = Vec::new();
-        part_2(input, &mut my_answer).unwrap();
-        assert_eq!(String::from_utf8(my_answer).unwrap().trim(), answer.trim());
-    }
+    test_solution!(day_4_1_small, part_1, SMALL_INPUT, 18);
+    test_solution!(day_4_2_small, part_2, SMALL_INPUT, 9);
 }

@@ -8,3 +8,6 @@ target/
 flamegraph.svg
 perf.data
 perf.data.old
+
+mutants.out/
+mutants.out.old/

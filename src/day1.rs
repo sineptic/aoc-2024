@@ -61,43 +61,16 @@ pub fn part_2(input: &str, output: &mut impl Write) -> Result<()> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::test_solution;
 
-    #[test]
-    fn day_1_1() {
-        let input = "
+    const SMALL_INPUT: &str = "
 00003   00004
 00004   00003
 00002   00005
 00001   00003
 00003   00009
 00003   00003
-"
-        .trim();
-        let answer = "
-11
-"
-        .trim();
-        let mut my_answer = Vec::new();
-        part_1(input, &mut my_answer).unwrap();
-        assert_eq!(String::from_utf8(my_answer).unwrap().trim(), answer.trim());
-    }
-    #[test]
-    fn day_1_2() {
-        let input = "
-00003   00004
-00004   00003
-00002   00005
-00001   00003
-00003   00009
-00003   00003
-    "
-        .trim();
-        let answer = "
-31
-    "
-        .trim();
-        let mut my_answer = Vec::new();
-        part_2(input, &mut my_answer).unwrap();
-        assert_eq!(String::from_utf8(my_answer).unwrap().trim(), answer.trim());
-    }
+";
+    test_solution!(day_1_1_small, part_1, SMALL_INPUT, 11);
+    test_solution!(day_1_2_small, part_2, SMALL_INPUT, 31);
 }
