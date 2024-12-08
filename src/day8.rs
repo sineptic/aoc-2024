@@ -1,5 +1,5 @@
 use itertools::iproduct;
-use smallvec::SmallVec;
+use smallvec::{smallvec, SmallVec};
 
 use crate::utils;
 
@@ -55,7 +55,7 @@ fn find_antinodes(
 pub fn part_1(input: &str, output: &mut impl std::io::Write) -> anyhow::Result<()> {
     let len = utils::get_square_input_len(input.len());
     let antenas = parse(input);
-    let mut antinodes = vec![vec![false; len]; len];
+    let mut antinodes = [[false; 50]; 50];
     antenas
         .iter()
         .flat_map(|antenas| find_antinodes(len, antenas))
