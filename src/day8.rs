@@ -1,12 +1,12 @@
+use arrayvec::ArrayVec;
 use itertools::iproduct;
-use smallvec::{smallvec, SmallVec};
 
 use crate::utils;
 
-fn parse(input: &str) -> [SmallVec<[(usize, usize); 5]>; (128 - b'0') as usize] {
+fn parse(input: &str) -> [ArrayVec<(usize, usize), 5>; (128 - b'0') as usize] {
     let input = input.as_bytes();
     let len = utils::get_square_input_len(input.len());
-    let mut answer = [const { SmallVec::new_const() }; _];
+    let mut answer = [const { ArrayVec::new_const() }; _];
     for row in 0..len {
         for col in 0..len {
             match input[row * (len + 1) + col] {

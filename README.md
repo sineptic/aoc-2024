@@ -49,6 +49,6 @@ part 1 - 1.98 ms
 part 2 - 52.3 ms
 
 ## Day 8
-part 1 - 3.19 us
+part 1 - 2.54 us
 
-part 2 - 229 us
+part 2 - 222 us
