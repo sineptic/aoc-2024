@@ -1,3 +1,5 @@
+use std::cmp::{max, min};
+
 use arrayvec::ArrayVec;
 use itertools::iproduct;
 
@@ -83,8 +85,17 @@ fn find_antinodes2(
                 second.1 as isize - first.1 as isize,
             );
 
+            let lower_bound = -max(
+                max(first.0, second.0) as isize / diff_row.abs(),
+                max(first.1, second.1) as isize / diff_col.abs(),
+            );
+            let upper_bound = max(
+                (50 - min(first.0, second.0)) as isize / diff_row.abs(),
+                (50 - min(first.1, second.1)) as isize / diff_col.abs(),
+            );
+
             let mut antinodes = ArrayVec::<_, 100>::new();
-            for i in -49..=49 {
+            for i in lower_bound..=upper_bound {
                 antinodes.push(find_antinode(first, diff_row, diff_col, i));
             }
             antinodes
