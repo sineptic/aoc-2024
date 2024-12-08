@@ -1,25 +1,24 @@
-use std::collections::HashMap;
-
 use itertools::iproduct;
+use smallvec::SmallVec;
 
 use crate::utils;
 
-fn parse(input: &str) -> (usize, HashMap<u8, Vec<(usize, usize)>>) {
+fn parse(input: &str) -> [SmallVec<[(usize, usize); 5]>; (128 - b'0') as usize] {
     let input = input.as_bytes();
     let len = utils::get_square_input_len(input.len());
-    let mut answer: HashMap<u8, Vec<(usize, usize)>> = HashMap::new();
+    let mut answer = [const { SmallVec::new_const() }; _];
     for row in 0..len {
         for col in 0..len {
             match input[row * (len + 1) + col] {
                 b'.' => {}
                 frequency @ (b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9') => {
-                    answer.entry(frequency).or_default().push((row, col));
+                    answer[(frequency - b'0') as usize].push((row, col));
                 }
                 _ => panic!("Frequency should be indicated by a single lowercase letter, uppercase letter, or digit."),
             }
         }
     }
-    (len, answer)
+    answer
 }
 fn find_antinode(
     second: (usize, usize),
@@ -54,11 +53,12 @@ fn find_antinodes(
         .filter(move |(row, col)| (0..len).contains(row) && (0..len).contains(col))
 }
 pub fn part_1(input: &str, output: &mut impl std::io::Write) -> anyhow::Result<()> {
-    let (len, antenas) = parse(input);
+    let len = utils::get_square_input_len(input.len());
+    let antenas = parse(input);
     let mut antinodes = vec![vec![false; len]; len];
     antenas
         .iter()
-        .flat_map(|(_frequency, antenas)| find_antinodes(len, antenas))
+        .flat_map(|antenas| find_antinodes(len, antenas))
         .for_each(|(row, col)| antinodes[row][col] = true);
 
     let answer = antinodes
@@ -93,11 +93,12 @@ fn find_antinodes2(
 }
 
 pub fn part_2(input: &str, output: &mut impl std::io::Write) -> anyhow::Result<()> {
-    let (len, antenas) = parse(input);
+    let len = utils::get_square_input_len(input.len());
+    let antenas = parse(input);
     let mut antinodes = vec![vec![false; len]; len];
     antenas
         .iter()
-        .flat_map(|(_frequency, antenas)| find_antinodes2(len, antenas))
+        .flat_map(|antenas| find_antinodes2(len, antenas))
         .for_each(|(row, col)| antinodes[row][col] = true);
 
     let answer = antinodes

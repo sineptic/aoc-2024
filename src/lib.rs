@@ -3,7 +3,8 @@
     portable_simd,
     unbounded_shifts,
     strict_overflow_ops,
-    mixed_integer_ops_unsigned_sub
+    mixed_integer_ops_unsigned_sub,
+    generic_arg_infer
 )]
 
 mod utils {
