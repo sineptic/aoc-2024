@@ -106,7 +106,7 @@ fn find_antinodes2(
 pub fn part_2(input: &str, output: &mut impl std::io::Write) -> anyhow::Result<()> {
     let len = utils::get_square_input_len(input.len());
     let antenas = parse(input);
-    let mut antinodes = vec![vec![false; len]; len];
+    let mut antinodes = [[false; 50]; 50];
     antenas
         .iter()
         .flat_map(|antenas| find_antinodes2(len, antenas))
