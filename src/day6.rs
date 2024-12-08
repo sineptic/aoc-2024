@@ -1,6 +1,8 @@
 use fxhash::{FxBuildHasher, FxHashSet};
 use itertools::Itertools;
 
+use crate::utils;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct GuardPosition {
     pub row: isize,
@@ -61,11 +63,7 @@ impl Default for GuardSpeed {
 
 fn parse_maze(input: &str) -> (Vec<Vec<bool>>, Guard) {
     let input = input.as_bytes();
-    // x^2 + x = size + 1
-    // x^2 + x - size - 1 = 0
-    // D = 1 + 4 * size + 4 = 4 * size + 5
-    // x = (sqrt(5 + 4 * sizse) - 1) / 2
-    let len = ((((input.len() * 4 + 5) as f64).sqrt() - 1.) / 2.) as usize;
+    let len = utils::get_square_input_len(input.len());
 
     let mut guard = None;
 
