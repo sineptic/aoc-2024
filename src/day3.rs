@@ -33,5 +33,9 @@ mod test {
 xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))
 ";
     test_solution!(day_3_1_small, part_1, SMALL_INPUT, 161);
-    // test_solution!(day_3_2_small, part_2, SMALL_INPUT, todo!());
+    // test_solution!(day_3_2_small, part_2, SMALL_INPUT, 48);
+
+    const BIG_INPUT: &str = include_str!("../data/day_3.txt");
+    test_solution!(day_3_1_big, part_1, BIG_INPUT, 179834255);
+    // test_solution!(day_3_2_big, part_2, BIG_INPUT, todo!());
 }

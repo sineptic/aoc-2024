@@ -73,4 +73,8 @@ mod test {
 ";
     test_solution!(day_1_1_small, part_1, SMALL_INPUT, 11);
     test_solution!(day_1_2_small, part_2, SMALL_INPUT, 31);
+
+    const BIG_INPUT: &str = include_str!("../data/day_1.txt");
+    test_solution!(day_1_1_big, part_1, BIG_INPUT, 2742123);
+    test_solution!(day_1_2_big, part_2, BIG_INPUT, 21328497);
 }
